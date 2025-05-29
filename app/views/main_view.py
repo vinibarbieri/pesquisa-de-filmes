@@ -70,5 +70,5 @@ class MainView(ttk.Frame):
             self.results_listbox.insert(tk.END, movie.title)
 
     def load_initial_movies(self):
-        movies = self.movie_service.get_all_movies()
+        movies = self.movie_service.get_popular_movies()
         self._update_results_listbox(movies) 
