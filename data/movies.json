@@ -1,0 +1,22 @@
+[
+    {
+        "title": "The Shawshank Redemption",
+        "genre": "Drama",
+        "release_date": "1994-09-22"
+    },
+    {
+        "title": "Inception",
+        "genre": "Action, Sci-Fi",
+        "release_date": "2010-07-16"
+    },
+    {
+        "title": "Parasite",
+        "genre": "Thriller, Drama",
+        "release_date": "2019-05-30"
+    },
+    {
+        "title": "Spirited Away",
+        "genre": "Animation, Fantasy",
+        "release_date": "2001-07-20"
+    }
+]
