@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 test.py
+test_user_repo.py
 
 # Virtual Environment
 venv/
