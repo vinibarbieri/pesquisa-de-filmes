@@ -1,5 +1,5 @@
 import requests
-from typing import List, Optional
+from typing import List, Optional, Dict
 from app.models.movie import Movie
 
 class ApiMovieRepository:
@@ -7,6 +7,19 @@ class ApiMovieRepository:
         self.api_key = api_key
         self.base_url = "https://api.themoviedb.org/3"
         self.image_base_url = "https://image.tmdb.org/t/p/w500"
+        self.genre_map = self._load_genre_map()
+
+    def _load_genre_map(self) -> Dict[int, str]:
+        try:
+            response_data = self._make_request("/genre/movie/list")
+            if not response_data or "genres" not in response_data:
+                print("Aviso: Não foi possível carregar o mapa de gêneros do TMDb")
+                return {}
+            
+            return {genre["id"]: genre["name"] for genre in response_data["genres"]}
+        except Exception as e:
+            print(f"Erro ao carregar mapa de gêneros: {str(e)}")
+            return {}
 
     def _make_request(self, endpoint: str, params: Optional[dict] = None) -> Optional[dict]:
         try:
@@ -22,10 +35,15 @@ class ApiMovieRepository:
             return None
 
     def _parse_movie_data(self, api_movie_dict: dict) -> Movie:
-        # Handle genre_ids - take first genre ID if available
-        genre = "Gênero Desconhecido"
-        if api_movie_dict.get("genre_ids") and len(api_movie_dict["genre_ids"]) > 0:
-            genre = str(api_movie_dict["genre_ids"][0])
+        # Process genre_ids into a comma-separated string of genre names
+        genre_ids = api_movie_dict.get("genre_ids", [])
+        genre_names = []
+        
+        for genre_id in genre_ids:
+            if genre_id in self.genre_map:
+                genre_names.append(self.genre_map[genre_id])
+        
+        genre = ", ".join(genre_names) if genre_names else "Gênero não informado"
 
         return Movie(
             title=api_movie_dict.get("title", ""),
