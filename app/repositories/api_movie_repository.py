@@ -8,6 +8,8 @@ class ApiMovieRepository:
         self.base_url = "https://api.themoviedb.org/3"
         self.image_base_url = "https://image.tmdb.org/t/p/w500"
         self.genre_map = self._load_genre_map()
+        # Create reverse mapping for genre names to IDs
+        self.reverse_genre_map = {name.lower(): id for id, name in self.genre_map.items()}
 
     def _load_genre_map(self) -> Dict[int, str]:
         try:
@@ -69,4 +71,32 @@ class ApiMovieRepository:
         if not response_data or "results" not in response_data:
             return []
         
-        return [self._parse_movie_data(movie) for movie in response_data["results"]] 
+        return [self._parse_movie_data(movie) for movie in response_data["results"]]
+
+    def discover_movies(self, genre_names_query: Optional[str] = None, year_query: Optional[str] = None, page: int = 1) -> List[Movie]:
+        discover_params = {"page": page}
+        
+        # Process year query if provided
+        if year_query and year_query.strip().isdigit() and len(year_query.strip()) == 4:
+            discover_params["primary_release_year"] = int(year_query.strip())
+        
+        # Process genre query if provided
+        if genre_names_query and genre_names_query.strip():
+            # Split genre names and process each one
+            genre_ids = []
+            for genre_name in genre_names_query.split(","):
+                genre_name = genre_name.strip().lower()
+                if genre_name in self.reverse_genre_map:
+                    genre_ids.append(str(self.reverse_genre_map[genre_name]))
+            
+            # If we found valid genre IDs, add them to the params
+            if genre_ids:
+                discover_params["with_genres"] = ",".join(genre_ids)
+        
+        # Only make the API call if we have more than just the page parameter
+        if len(discover_params) > 1:
+            response_data = self._make_request("/discover/movie", discover_params)
+            if response_data and "results" in response_data:
+                return [self._parse_movie_data(movie) for movie in response_data["results"]]
+        
+        return [] 
