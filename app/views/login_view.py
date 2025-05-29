@@ -4,10 +4,11 @@ from typing import Callable
 from app.services.auth_service import AuthenticationService
 
 class LoginView(ttk.Frame):
-    def __init__(self, parent, auth_service: AuthenticationService, show_main_view_callback: Callable):
+    def __init__(self, parent, auth_service: AuthenticationService, show_main_view_callback: Callable, show_registration_view_callback: Callable):
         super().__init__(parent)
         self.auth_service = auth_service
         self.show_main_view_callback = show_main_view_callback
+        self.show_registration_view_callback = show_registration_view_callback
 
         # Configura o layout do frame
         self.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
@@ -32,9 +33,13 @@ class LoginView(ttk.Frame):
         login_button = ttk.Button(self, text="Login", command=self.handle_login)
         login_button.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 
+        # Botão de registro
+        register_button = ttk.Button(self, text="Criar Conta", command=self.show_registration_view_callback)
+        register_button.grid(row=3, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+
         # Label para mensagens de status
         self.status_label = ttk.Label(self, text="")
-        self.status_label.grid(row=3, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        self.status_label.grid(row=4, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 
         # Configura a coluna dos campos de entrada para expandir
         self.columnconfigure(1, weight=1)

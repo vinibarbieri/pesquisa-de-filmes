@@ -1,9 +1,11 @@
 import tkinter as tk
 from app.repositories.file_movie_repository import FileMovieRepository
+from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthenticationService
 from app.services.movie_service import MovieService
 from app.views.login_view import LoginView
 from app.views.main_view import MainView
+from app.views.registration_view import RegistrationView
 
 class App(tk.Tk):
     def __init__(self):
@@ -18,8 +20,9 @@ class App(tk.Tk):
         self.grid_columnconfigure(0, weight=1)
 
         # Instanciação dos serviços e repositório
+        self.user_repo = UserRepository("data/users.json")
         repo = FileMovieRepository("data/movies.json")
-        self.auth_service = AuthenticationService()
+        self.auth_service = AuthenticationService(self.user_repo)
         self.movie_service = MovieService(repo)
 
         # Inicialização da view atual
@@ -37,7 +40,8 @@ class App(tk.Tk):
         self.current_view = LoginView(
             parent=self,
             auth_service=self.auth_service,
-            show_main_view_callback=self._show_main_view
+            show_main_view_callback=self._show_main_view,
+            show_registration_view_callback=self._show_registration_view
         )
 
     def _show_main_view(self):
@@ -49,6 +53,15 @@ class App(tk.Tk):
         self.current_view = MainView(
             parent=self,
             movie_service=self.movie_service
+        )
+
+    def _show_registration_view(self):
+        if self.current_view:
+            self.current_view.destroy()
+        self.current_view = RegistrationView(
+            parent=self,
+            auth_service=self.auth_service,
+            show_login_view_callback=self._show_login_view
         )
 
 if __name__ == "__main__":
