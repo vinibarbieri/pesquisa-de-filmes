@@ -15,16 +15,17 @@ class MovieService:
         genre_query = genre_query.strip().lower()
         date_query = date_query.strip()
 
-        # Se não houver nome para buscar, mas houver outros filtros, retorna lista vazia
-        if not name_query and (genre_query or date_query):
-            return []
-
         # Se não houver nenhum filtro, retorna filmes populares
         if not name_query and not genre_query and not date_query:
             return self.get_popular_movies()
 
-        # Busca por nome usando a API
-        movies = self.movie_repository.search_movies_by_name(name_query)
+        # Obtém a lista base de filmes
+        if name_query:
+            # Se há busca por nome, usa a API de busca
+            movies = self.movie_repository.search_movies_by_name(name_query)
+        else:
+            # Se não há busca por nome mas há outros filtros, usa filmes populares
+            movies = self.get_popular_movies()
 
         # Filtra por gênero (client-side)
         if genre_query:
