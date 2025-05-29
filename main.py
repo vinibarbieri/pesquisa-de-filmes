@@ -1,5 +1,7 @@
 import tkinter as tk
-from app.repositories.file_movie_repository import FileMovieRepository
+import os
+from dotenv import load_dotenv
+from app.repositories.api_movie_repository import ApiMovieRepository
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthenticationService
 from app.services.movie_service import MovieService
@@ -7,9 +9,19 @@ from app.views.login_view import LoginView
 from app.views.main_view import MainView
 from app.views.registration_view import RegistrationView
 
+# Load environment variables
+load_dotenv()
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        # Load TMDb API key
+        self.tmdb_api_key = os.getenv("TMDB_API_KEY")
+        if not self.tmdb_api_key:
+            print("ERRO: Chave de API TMDB_API_KEY não encontrada no arquivo .env!")
+            self.destroy()
+            return
 
         # Configuração da janela principal
         self.title("Sistema de Pesquisa de Filmes")
@@ -21,9 +33,9 @@ class App(tk.Tk):
 
         # Instanciação dos serviços e repositório
         self.user_repo = UserRepository("data/users.json")
-        repo = FileMovieRepository("data/movies.json")
+        api_repo = ApiMovieRepository(api_key=self.tmdb_api_key)
         self.auth_service = AuthenticationService(self.user_repo)
-        self.movie_service = MovieService(repo)
+        self.movie_service = MovieService(api_repo)
 
         # Inicialização da view atual
         self.current_view = None

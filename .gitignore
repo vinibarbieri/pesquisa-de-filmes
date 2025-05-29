@@ -39,3 +39,4 @@ data/*.json
 
 # Logs
 *.log
+.env

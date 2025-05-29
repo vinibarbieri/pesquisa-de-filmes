@@ -1,48 +1,46 @@
 from typing import List
 from app.models.movie import Movie
-from app.repositories.file_movie_repository import FileMovieRepository
+from app.repositories.api_movie_repository import ApiMovieRepository
 
 class MovieService:
-    def __init__(self, movie_repository: FileMovieRepository):
+    def __init__(self, movie_repository: ApiMovieRepository):
         self.movie_repository = movie_repository
-        self._movies_cache = None
 
-    def _load_movies_if_needed(self) -> List[Movie]:
-        if self._movies_cache is None:
-            self._movies_cache = self.movie_repository.load_movies()
-        return self._movies_cache
-
-    def get_all_movies(self) -> List[Movie]:
-        return self._load_movies_if_needed()
+    def get_popular_movies(self, page: int = 1) -> List[Movie]:
+        return self.movie_repository.get_popular_movies(page=page)
 
     def search_movies(self, name_query: str = "", genre_query: str = "", date_query: str = "") -> List[Movie]:
-        # Obtém a lista completa de filmes
-        filtered_movies = self._load_movies_if_needed()
-
         # Remove espaços em branco e converte para minúsculas as queries
         name_query = name_query.strip().lower()
         genre_query = genre_query.strip().lower()
         date_query = date_query.strip()
 
-        # Filtra por nome
+        # Se não houver nenhum filtro, retorna filmes populares
+        if not name_query and not genre_query and not date_query:
+            return self.get_popular_movies()
+
+        # Se há busca por nome, usa a API de busca e aplica filtros adicionais
         if name_query:
-            filtered_movies = [
-                movie for movie in filtered_movies
-                if name_query in movie.title.lower()
-            ]
+            movies = self.movie_repository.search_movies_by_name(name_query)
+            
+            # Filtra por gênero (client-side)
+            if genre_query:
+                movies = [
+                    movie for movie in movies
+                    if genre_query in movie.genre.lower()
+                ]
 
-        # Filtra por gênero
-        if genre_query:
-            filtered_movies = [
-                movie for movie in filtered_movies
-                if genre_query in movie.genre.lower()
-            ]
-
-        # Filtra por data de lançamento
-        if date_query:
-            filtered_movies = [
-                movie for movie in filtered_movies
-                if date_query in movie.release_date
-            ]
-
-        return filtered_movies 
+            # Filtra por data de lançamento (client-side)
+            if date_query:
+                movies = [
+                    movie for movie in movies
+                    if date_query in movie.release_date
+                ]
+            
+            return movies
+        
+        # Se não há busca por nome mas há outros filtros, usa discover
+        return self.movie_repository.discover_movies(
+            genre_names_query=genre_query,
+            year_query=date_query
+        ) 
